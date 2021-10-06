@@ -1,1 +1,1 @@
-web: gunicorn VUEBE.wsgi
+web: gunicorn VBE.wsgi
