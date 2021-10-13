@@ -13,7 +13,7 @@ import os
 
 class Model_view(APIView):
     def get(self, request):
-        print(os.path.join(settings.BASE_DIR, "db.sqlite3"))
+        # print(os.path.join(settings.BASE_DIR, "db.sqlite3"))
         model = Model.objects.first()
         serializer = ModelSerializer(model)
         return Response(serializer.data)
