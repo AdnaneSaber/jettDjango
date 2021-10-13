@@ -5,8 +5,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 import json
 # Create your models here.
 import uuid
+from django.core import serializers
 from django_countries.fields import CountryField
-
+from django.forms.models import model_to_dict
 # class AnimationDestination(models.Model):
 #     position = models.
 
@@ -65,7 +66,7 @@ class Effect(models.Model):
         ('2D/3D', '2D/3D'),
     )
     name = models.CharField(max_length=255)
-    effectType = models.CharField(max_length=50,choices=EFFECT_TYPE_CHOICES)
+    effectType = models.CharField(max_length=50, choices=EFFECT_TYPE_CHOICES)
     prefabName = models.CharField(max_length=25)
     iOSBundleUrl = models.URLField()
     androidBundleUrl = models.URLField()
@@ -194,22 +195,29 @@ class Model(models.Model):
         os.mkdir("jsonDirectory")
 
     def save(self, *args, **kwargs):
-        data = {
-            "AndroidAssetBundle": self.animation.AndroidAssetBundle,
-            "animationId": self.animation.id,
-            "destination": self.animation.destination,
-            "endTime": self.animation.endTime,
-            "iOSAssetBundle": self.animation.iOSAssetBundle,
-            "loopCount": self.animation.loopCount,
-            "name": self.animation.name,
-            "startTime": self.animation.startTime,
-            "trim": self.animation.trim,
-            "blend": self.animation.blend,
-            "stitch": self.animation.stitch,
-        }
+        # data = {
+        #     "AndroidAssetBundle": self.animation.AndroidAssetBundle,
+        #     "animationId": self.animation.id,
+        #     "destination": self.animation.destination,
+        #     "endTime": self.animation.endTime,
+        #     "iOSAssetBundle": self.animation.iOSAssetBundle,
+        #     "loopCount": self.animation.loopCount,
+        #     "name": self.animation.name,
+        #     "startTime": self.animation.startTime,
+        #     "trim": self.animation.trim,
+        #     "blend": self.animation.blend,
+        #     "stitch": self.animation.stitch,
+        # }
         super().save(*args, **kwargs)
-        with open(f"jsonDirectory/Model-{self.id}.json", "w") as outfile:
-            json.dump(data, outfile)
+        with open(f"jsonDirectory/Model-{self.id}.json", "w") as out:
+            data = model_to_dict(self)
+            data['animation'] = model_to_dict(Animation.objects.get(id=self.animation.id))
+            # data['textToSpeech'] = model_to_dict(TextToSpeech.objects.get(id=self.textToSpeech.id))
+            data['movement'] = model_to_dict(Movement.objects.get(id=self.movement.id))
+            data['sound'] = model_to_dict(Sound.objects.get(id=self.sound.id))
+            data['light'] = model_to_dict(Light.objects.get(id=self.light.id))
+            data['effect'] = model_to_dict(Effect.objects.get(id=self.effect.id))
+            json.dump(data, out)
 
     def __str__(self):
         return str(self.name)
