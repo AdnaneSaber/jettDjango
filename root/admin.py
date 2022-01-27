@@ -1,7 +1,13 @@
 from django.contrib import admin
 
-from root.models import Animation, Effect, Light, Model, Sound, TextToSpeech, Language, Movement
+from root.models import Animation, Effect, Light, Model, Sound, TextToSpeech, Language, Movement, UserAccount
 
+
+class UserAccountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'email')
+
+
+admin.site.register(UserAccount, UserAccountAdmin)
 
 admin.site.site_header = 'ABXR Admin'
 admin.site.register(Model)

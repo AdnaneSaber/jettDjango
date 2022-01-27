@@ -3,9 +3,10 @@ from django.db import models
 from jsonfield import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 import json
-# Create your models here.
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 import uuid
 from django.core import serializers
+from datetime import datetime
 from django_countries.fields import CountryField
 from django.forms.models import model_to_dict
 # class AnimationDestination(models.Model):
@@ -221,3 +222,61 @@ class Model(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+
+
+
+class UserAccountManager(BaseUserManager):
+    def create_user(self, email, name, password=None):
+        if not email:
+            raise ValueError('Users must have an email address')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, name=name)
+
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create_superuser(self, email, name, password, **kwargs):
+        user = self.create_user(email, name, password, **kwargs)
+
+        user.is_admin = True
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+
+        return user
+
+def content_file_name_user(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = "%s_%s.%s" % (instance.email, datetime.now(), ext)
+    return os.path.join('storage', filename)
+
+class UserAccount(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(max_length=255, unique=True, null=False)
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    ppic = models.ImageField(
+        upload_to=content_file_name_user, default='storage/no_image.jpeg')
+    cpic = models.ImageField(
+        upload_to=content_file_name_user, default='storage/no_image_cover.jpg')
+    phone_number = models.CharField(max_length=255,default="06123456789")
+    moroccan = models.BooleanField(default=True)
+    testField = models.CharField(max_length=255,default="")
+    description = models.CharField(max_length=100, null=True, blank=True)
+    objects = UserAccountManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    def get_full_name(self):
+        return self.name
+
+    def get_short_name(self):
+        return self.name
+
+    def __str__(self):
+        return self.email
